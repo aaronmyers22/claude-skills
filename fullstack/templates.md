@@ -620,6 +620,244 @@ export default function LoginPage() {
 }
 ```
 
+## Media Components
+
+### MediaPicker Component
+```typescript
+// components/ui/media-picker.tsx
+"use client";
+
+import { useState, useRef } from "react";
+import { api } from "~/trpc/react";
+import { Button } from "~/components/ui/button";
+
+interface MediaPickerProps {
+  value?: string;
+  onChange: (url: string) => void;
+  label?: string;
+}
+
+export function MediaPicker({ value, onChange, label = "Image" }: MediaPickerProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { data, isLoading } = api.media.getAll.useQuery(
+    { limit: 50 },
+    { enabled: isOpen }
+  );
+  const utils = api.useUtils();
+
+  const createMutation = api.media.create.useMutation({
+    onSuccess: () => utils.media.getAll.invalidate(),
+  });
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "media");
+
+      const response = await fetch("/api/upload", { method: "POST", body: formData });
+      if (!response.ok) throw new Error("Upload failed");
+
+      const { url } = await response.json();
+      await createMutation.mutateAsync({
+        filename: file.name,
+        mimeType: file.type,
+        size: file.size,
+        url,
+      });
+
+      onChange(url);
+      setIsOpen(false);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Failed to upload");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <label className="block text-sm font-medium">{label}</label>
+
+      {value && (
+        <div className="relative inline-block">
+          <img src={value} alt="Selected" className="h-24 w-24 rounded-lg object-cover border" />
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            className="absolute -right-2 -top-2 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      <Button type="button" variant="outline" size="sm" onClick={() => setIsOpen(true)}>
+        {value ? "Change Image" : "Select Image"}
+      </Button>
+
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="mx-4 max-h-[80vh] w-full max-w-2xl overflow-hidden rounded-lg bg-white shadow-xl">
+            <div className="flex items-center justify-between border-b px-4 py-3">
+              <h3 className="font-semibold">Select Image</h3>
+              <button onClick={() => setIsOpen(false)}>✕</button>
+            </div>
+            <div className="p-4">
+              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
+              <Button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} size="sm">
+                {uploading ? "Uploading..." : "Upload New Image"}
+              </Button>
+
+              <div className="mt-4 max-h-96 overflow-y-auto">
+                {isLoading ? (
+                  <div className="py-8 text-center text-gray-500">Loading...</div>
+                ) : !data?.items.length ? (
+                  <div className="py-8 text-center text-gray-500">No images yet.</div>
+                ) : (
+                  <div className="grid grid-cols-4 gap-3">
+                    {data.items.map((media) => (
+                      <button
+                        key={media.id}
+                        type="button"
+                        onClick={() => { onChange(media.url); setIsOpen(false); }}
+                        className={`aspect-square overflow-hidden rounded-lg border-2 ${
+                          value === media.url ? "border-primary-500 ring-2 ring-primary-500" : "border-transparent hover:border-gray-300"
+                        }`}
+                      >
+                        <img src={media.url} alt={media.alt ?? media.filename} className="h-full w-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### RichTextEditor Component
+```typescript
+// components/ui/rich-text-editor.tsx
+"use client";
+
+import { useState, useRef } from "react";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Link from "@tiptap/extension-link";
+import Image from "@tiptap/extension-image";
+import Placeholder from "@tiptap/extension-placeholder";
+import { cn } from "~/lib/utils";
+import { api } from "~/trpc/react";
+import { Button } from "./button";
+
+interface RichTextEditorProps {
+  content: string;
+  onChange: (content: string) => void;
+  placeholder?: string;
+}
+
+export function RichTextEditor({ content, onChange, placeholder = "Start writing..." }: RichTextEditorProps) {
+  const [showImagePicker, setShowImagePicker] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { data: mediaData, isLoading: mediaLoading } = api.media.getAll.useQuery(
+    { limit: 50 },
+    { enabled: showImagePicker }
+  );
+  const utils = api.useUtils();
+  const createMediaMutation = api.media.create.useMutation({
+    onSuccess: () => utils.media.getAll.invalidate(),
+  });
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Link.configure({ openOnClick: false }),
+      Image.configure({ HTMLAttributes: { class: "max-w-full rounded-lg" } }),
+      Placeholder.configure({ placeholder }),
+    ],
+    content,
+    immediatelyRender: false, // Prevents SSR hydration mismatch
+    onUpdate: ({ editor }) => onChange(editor.getHTML()),
+  });
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editor) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "media");
+
+      const response = await fetch("/api/upload", { method: "POST", body: formData });
+      if (!response.ok) throw new Error("Upload failed");
+
+      const { url } = await response.json();
+      await createMediaMutation.mutateAsync({ filename: file.name, mimeType: file.type, size: file.size, url });
+
+      editor.chain().focus().setImage({ src: url }).run();
+      setShowImagePicker(false);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Failed to upload");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  if (!editor) return <div className="h-64 animate-pulse rounded-md bg-gray-100" />;
+
+  return (
+    <div className="rounded-md border border-gray-300">
+      {/* Toolbar */}
+      <div className="flex flex-wrap gap-1 border-b border-gray-300 p-2">
+        <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive("bold")}>B</ToolbarButton>
+        <ToolbarButton onClick={() => editor.chain().focus().toggleItalic().run()} active={editor.isActive("italic")}>I</ToolbarButton>
+        <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} active={editor.isActive("heading", { level: 2 })}>H2</ToolbarButton>
+        <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive("bulletList")}>•</ToolbarButton>
+        <ToolbarButton onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive("orderedList")}>1.</ToolbarButton>
+        <ToolbarButton onClick={() => setShowImagePicker(true)}>📷</ToolbarButton>
+      </div>
+
+      <EditorContent editor={editor} className="prose max-w-none p-4 [&_.ProseMirror]:min-h-[200px] [&_.ProseMirror]:focus:outline-none" />
+
+      {/* Image Picker Modal - similar to MediaPicker */}
+    </div>
+  );
+}
+
+function ToolbarButton({ children, onClick, active }: { children: React.ReactNode; onClick: () => void; active?: boolean }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "rounded px-2 py-1.5 text-sm font-medium transition-colors min-w-[32px]",
+        active ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+```
+
 ## Utility Functions
 
 ### cn() Utility

@@ -175,3 +175,38 @@ import { cn } from "~/lib/utils";
 
 <Button variant="glass">Glass Button</Button>
 ```
+
+## Current tRPC Routers (GFP Website)
+
+| Router | Procedures |
+|--------|------------|
+| `posts` | getPublished, getBySlug, getAll, create, update, delete |
+| `categories` | getAll, create, update, delete |
+| `tags` | getAll, create, update, delete |
+| `events` | getUpcoming, getByDateRange, getBySlug, getAll, create, update, delete |
+| `team` | getAll, getActive, getFeatured, getBySlug, create, update, delete, reorder |
+| `countries` | getAll, getActive, getBySlug, create, update, delete |
+| `media` | getAll, create, update, delete |
+| `newsletter` | subscribe, unsubscribe, getAll, delete |
+| `contact` | submit, getAll, markRead, archive, delete |
+| `users` | getAll, create, update, updateRole, resetPassword, delete |
+
+## Admin Portal Features
+
+| Page | Features |
+|------|----------|
+| Dashboard | Stats overview |
+| Posts | CRUD with status filter, rich text editor |
+| Events | CRUD with date/time, location |
+| Team | CRUD with photo upload, drag reorder, featured toggle |
+| Countries | CRUD with flag image, rich content |
+| Media | Drag-and-drop upload, grid view |
+| Subscribers | View/delete newsletter subscribers |
+| Messages | Inbox/archive, mark read, reply |
+| Users | Full CRUD, profile photo, password reset, delete (Admin only) |
+
+### Mobile Responsive Admin
+- Collapsible sidebar (hidden on mobile by default)
+- Card-based layouts for data lists on mobile
+- Table layouts on desktop (md+ breakpoint)
+- Inline expandable edit/reset password forms
