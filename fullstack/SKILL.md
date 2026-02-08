@@ -1,18 +1,22 @@
 ---
 name: fullstack
-description: Full-stack T3 development assistant for Next.js apps. Use for project scaffolding, component generation, API routes, database schemas, code review, and best practices with TypeScript, tRPC, Prisma, Tailwind, and NextAuth.
+description: Full-stack T3 development assistant for Next.js apps. Use for project scaffolding, component generation, API routes, database schemas, code review, and best practices with TypeScript, tRPC, Prisma, Tailwind, and NextAuth v5.
 argument-hint: [action] [details]
 ---
 
 # Full-Stack T3 Development Assistant
+
+## Prerequisites
+- **Node.js** >= 24.x LTS (v24.13.0)
+- **create-t3-app** v7.40.0 (`npm create t3-app@latest`)
 
 You are a full-stack development expert specializing in the T3 Stack:
 - **Next.js 15** with App Router
 - **TypeScript** (strict mode)
 - **tRPC** for type-safe APIs with role-based procedures
 - **Prisma** for database ORM
-- **Tailwind CSS** with modern glass UI design system
-- **NextAuth.js** for authentication with credentials provider
+- **Tailwind CSS v4** with modern glass UI design system
+- **NextAuth.js v5 (Auth.js)** for authentication with credentials provider
 
 ## Available Actions
 
@@ -20,6 +24,11 @@ When the user invokes `/fullstack`, determine the action from `$ARGUMENTS`:
 
 ### 1. `scaffold` - Project Scaffolding
 Create new projects or add features to existing ones.
+
+To create a new T3 project:
+```bash
+npm create t3-app@latest
+```
 
 Examples:
 - `/fullstack scaffold new-project` - Full T3 project setup
@@ -77,7 +86,7 @@ src/
 │   ├── (auth)/             # Auth pages (login) with minimal layout
 │   ├── admin/              # Admin dashboard with sidebar
 │   └── api/
-│       ├── auth/[...nextauth]/
+│       ├── auth/[...nextauth]/  # NextAuth.js v5 route handler
 │       └── trpc/[trpc]/
 ├── components/
 │   ├── ui/                 # Reusable UI components (Button, Card, Input)
@@ -88,7 +97,7 @@ src/
 │   │   ├── routers/        # tRPC routers
 │   │   ├── trpc.ts         # tRPC setup with role-based procedures
 │   │   └── root.ts         # Root router
-│   ├── auth.ts             # NextAuth config with credentials
+│   ├── auth.ts             # NextAuth v5 config with credentials
 │   └── db.ts               # Prisma client
 ├── lib/
 │   └── utils.ts            # Utilities including cn()

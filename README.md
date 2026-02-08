@@ -34,7 +34,9 @@ Full-stack T3 development assistant for Next.js applications.
 - tRPC with role-based procedures
 - Prisma ORM
 - Tailwind CSS with glass design system
-- NextAuth.js with credentials provider
+- NextAuth.js v5 (Auth.js) with credentials provider
+- Node.js >= 24.x LTS
+- create-t3-app v7.40.0
 
 ## Installation
 

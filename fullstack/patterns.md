@@ -190,19 +190,20 @@ export const postRouter = createTRPCRouter({
 
 ## Authentication Patterns
 
-### NextAuth with Credentials Provider
+### NextAuth v5 (Auth.js) with Credentials Provider
 ```typescript
 // server/auth.ts
+import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import CredentialsProvider from "next-auth/providers/credentials";
+import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
+import { db } from "~/server/db";
 
-export const authOptions: NextAuthOptions = {
+export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(db),
   session: { strategy: "jwt" }, // Required for credentials
   providers: [
-    CredentialsProvider({
-      name: "credentials",
+    Credentials({
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
@@ -211,12 +212,12 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) return null;
 
         const user = await db.user.findUnique({
-          where: { email: credentials.email },
+          where: { email: credentials.email as string },
         });
 
         if (!user?.password) return null;
 
-        const isValid = await bcrypt.compare(credentials.password, user.password);
+        const isValid = await bcrypt.compare(credentials.password as string, user.password);
         if (!isValid) return null;
 
         return { id: user.id, email: user.email, name: user.name, role: user.role };
@@ -233,18 +234,18 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-};
+});
 ```
 
 ### Protected Layout Pattern (Mobile Responsive)
 ```typescript
 // app/admin/layout.tsx
 import { redirect } from "next/navigation";
-import { getServerAuthSession } from "~/server/auth";
+import { auth } from "~/server/auth";
 import { AdminLayoutClient } from "~/components/layout/admin-layout-client";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const session = await getServerAuthSession();
+  const session = await auth();
 
   if (!session) {
     redirect("/login?callbackUrl=/admin");
@@ -644,10 +645,10 @@ model Media {
 ```typescript
 // app/api/upload/route.ts
 import { put } from "@vercel/blob";
-import { getServerAuthSession } from "~/server/auth";
+import { auth } from "~/server/auth";
 
 export async function POST(request: Request) {
-  const session = await getServerAuthSession();
+  const session = await auth();
   if (!session || (session.user.role !== "ADMIN" && session.user.role !== "EDITOR")) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }

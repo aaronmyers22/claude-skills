@@ -2,98 +2,74 @@
 
 ## Design System
 
-### Tailwind Config with Glass Design System
-```typescript
-// tailwind.config.ts
-import { type Config } from "tailwindcss";
+### Tailwind v4 CSS Theme with Glass Design System
 
-export default {
-  content: ["./src/**/*.tsx"],
-  theme: {
-    extend: {
-      colors: {
-        // Primary - Coral/orange
-        primary: {
-          50: "#fef7f4",
-          100: "#fdeee8",
-          200: "#fbd9cc",
-          300: "#f8bba3",
-          400: "#f39470",
-          500: "#eb6d45",
-          600: "#d85332",
-          700: "#b54228",
-          800: "#943826",
-          900: "#7a3224",
-          950: "#421710",
-        },
-        // Secondary - Slate blue
-        secondary: {
-          50: "#f6f8fb",
-          100: "#ebeef5",
-          200: "#d3dbe8",
-          300: "#acbbd3",
-          400: "#7f96b9",
-          500: "#5f78a0",
-          600: "#4b6085",
-          700: "#3e4e6c",
-          800: "#36445b",
-          900: "#303b4d",
-          950: "#1f2633",
-        },
-        // Neutral - Warm grays
-        neutral: {
-          50: "#fafaf9",
-          100: "#f5f5f4",
-          200: "#e7e5e4",
-          300: "#d6d3d1",
-          400: "#a8a29e",
-          500: "#78716c",
-          600: "#57534e",
-          700: "#44403c",
-          800: "#292524",
-          900: "#1c1917",
-          950: "#0c0a09",
-        },
-      },
-      boxShadow: {
-        glass: "0 4px 30px rgba(0, 0, 0, 0.05)",
-        "glass-lg": "0 8px 32px rgba(0, 0, 0, 0.08)",
-        soft: "0 2px 8px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.04)",
-        "soft-lg": "0 4px 12px rgba(0, 0, 0, 0.05), 0 8px 32px rgba(0, 0, 0, 0.08)",
-      },
-      backgroundImage: {
-        "gradient-mesh": `
-          radial-gradient(at 40% 20%, rgba(235, 109, 69, 0.08) 0px, transparent 50%),
-          radial-gradient(at 80% 0%, rgba(95, 120, 160, 0.08) 0px, transparent 50%),
-          radial-gradient(at 0% 50%, rgba(235, 109, 69, 0.05) 0px, transparent 50%)
-        `,
-      },
-      animation: {
-        "fade-in": "fadeIn 0.5s ease-out",
-        "slide-up": "slideUp 0.5s ease-out",
-      },
-      keyframes: {
-        fadeIn: {
-          "0%": { opacity: "0" },
-          "100%": { opacity: "1" },
-        },
-        slideUp: {
-          "0%": { opacity: "0", transform: "translateY(10px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
-        },
-      },
-    },
-  },
-  plugins: [],
-} satisfies Config;
-```
+Tailwind CSS v4 replaces `tailwind.config.ts` with CSS-based `@theme` configuration. All customization lives in `globals.css`.
 
-### Global CSS with Glass Effects
 ```css
 /* globals.css */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  /* Primary - Coral/orange */
+  --color-primary-50: #fef7f4;
+  --color-primary-100: #fdeee8;
+  --color-primary-200: #fbd9cc;
+  --color-primary-300: #f8bba3;
+  --color-primary-400: #f39470;
+  --color-primary-500: #eb6d45;
+  --color-primary-600: #d85332;
+  --color-primary-700: #b54228;
+  --color-primary-800: #943826;
+  --color-primary-900: #7a3224;
+  --color-primary-950: #421710;
+
+  /* Secondary - Slate blue */
+  --color-secondary-50: #f6f8fb;
+  --color-secondary-100: #ebeef5;
+  --color-secondary-200: #d3dbe8;
+  --color-secondary-300: #acbbd3;
+  --color-secondary-400: #7f96b9;
+  --color-secondary-500: #5f78a0;
+  --color-secondary-600: #4b6085;
+  --color-secondary-700: #3e4e6c;
+  --color-secondary-800: #36445b;
+  --color-secondary-900: #303b4d;
+  --color-secondary-950: #1f2633;
+
+  /* Neutral - Warm grays */
+  --color-neutral-50: #fafaf9;
+  --color-neutral-100: #f5f5f4;
+  --color-neutral-200: #e7e5e4;
+  --color-neutral-300: #d6d3d1;
+  --color-neutral-400: #a8a29e;
+  --color-neutral-500: #78716c;
+  --color-neutral-600: #57534e;
+  --color-neutral-700: #44403c;
+  --color-neutral-800: #292524;
+  --color-neutral-900: #1c1917;
+  --color-neutral-950: #0c0a09;
+
+  /* Shadows */
+  --shadow-glass: 0 4px 30px rgba(0, 0, 0, 0.05);
+  --shadow-glass-lg: 0 8px 32px rgba(0, 0, 0, 0.08);
+  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.04);
+  --shadow-soft-lg: 0 4px 12px rgba(0, 0, 0, 0.05), 0 8px 32px rgba(0, 0, 0, 0.08);
+
+  /* Animations */
+  --animate-fade-in: fadeIn 0.5s ease-out;
+  --animate-slide-up: slideUp 0.5s ease-out;
+
+  @keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    0% { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+}
 
 @layer base {
   :root {
